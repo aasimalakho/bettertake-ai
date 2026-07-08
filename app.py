@@ -4,7 +4,7 @@ BetterTake AI — backend
 Two AI agents argue over an ad image until it's good enough to ship.
 
 Agent 1 (Generator): Genblaze -> Replicate (FLUX) image model -> creates the ad image
-Agent 2 (Critic):     OpenAI vision model -> scores the image against the brief,
+Agent 2 (Critic):     Groq vision model -> scores the image against the brief,
                        calls out ONE specific flaw to fix next round
 Storage:              Every round's image + a full session log go to Backblaze B2
                        via Genblaze's ObjectStorageSink (provenance manifest included
@@ -47,9 +47,13 @@ from genblaze_s3 import S3StorageBackend
 from genblaze_replicate import ReplicateImageProvider
 
 # ---------------------------------------------------------------------------
-# OpenAI (the "critic" agent — vision scoring). Kept as a direct call rather
+# Groq (the "critic" agent — vision scoring). Kept as a direct call rather
 # than routed through Genblaze because the critic isn't generating media, it's
 # judging it; Genblaze's job here is generation + provenance + storage.
+#
+# Groq's API is OpenAI-compatible, so we reuse the `openai` SDK and just point
+# it at Groq's endpoint with a Groq key — free tier, no card required, vision
+# model included. See: https://console.groq.com/docs/vision
 # ---------------------------------------------------------------------------
 from openai import OpenAI
 
@@ -66,7 +70,15 @@ APPROVAL_SCORE = 8          # critic score (1-10) at which we stop iterating
 MAX_BRIEF_CHARS = 600       # keeps prompts (and cost) bounded
 REQUEST_COOLDOWN_SECONDS = 8  # naive per-IP throttle, see check_rate_limit()
 
-openai_client = OpenAI()  # reads OPENAI_API_KEY from env
+# CRITIC_MODEL is in "preview" on Groq as of this writing — check
+# console.groq.com/docs/vision for the current recommended vision model if
+# this one gets deprecated.
+CRITIC_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+
+critic_client = OpenAI(
+    api_key=os.environ.get("GROQ_API_KEY"),
+    base_url="https://api.groq.com/openai/v1",
+)
 
 _last_request_at = {}  # ip -> unix timestamp, in-memory only
 
@@ -178,8 +190,8 @@ def run_critic_step(image_url: str, product: str, brand_direction: str) -> dict:
         "good, approve it."
     )
 
-    response = openai_client.chat.completions.create(
-        model="gpt-4o",
+    response = critic_client.chat.completions.create(
+        model=CRITIC_MODEL,
         messages=[
             {"role": "system", "content": system},
             {

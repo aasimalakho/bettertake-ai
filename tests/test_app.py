@@ -5,7 +5,7 @@ Run with: pytest
 
 These deliberately test only pure functions (build_prompt, clamp_max_rounds,
 _parse_and_validate_form) rather than the full generate/critic pipeline,
-since those hit real Replicate / OpenAI / B2 calls. It's a small suite, but
+since those hit real Replicate / Groq / B2 calls. It's a small suite, but
 it's enough to show input handling is actually exercised rather than just
 hoped to work.
 """
