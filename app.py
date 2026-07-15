@@ -44,7 +44,7 @@ log = logging.getLogger("bettertake")
 # ---------------------------------------------------------------------------
 from genblaze_core import Pipeline, Modality, ObjectStorageSink, KeyStrategy
 from genblaze_s3 import S3StorageBackend
-from genblaze_replicate import ReplicateImageProvider
+from genblaze_replicate import ReplicateProvider
 
 # ---------------------------------------------------------------------------
 # Groq (the "critic" agent — vision scoring). Kept as a direct call rather
@@ -156,7 +156,7 @@ def run_generator_step(pipeline_name, prompt, sink, previous_result=None,
     if reference_image_url:
         try:
             result = pipeline.step(
-                ReplicateImageProvider(),
+                ReplicateProvider(),
                 reference_image=reference_image_url,
                 **step_kwargs,
             ).run(sink=sink, timeout=180)
@@ -164,7 +164,7 @@ def run_generator_step(pipeline_name, prompt, sink, previous_result=None,
         except TypeError:
             log.warning("Provider didn't accept reference_image=; retrying without it.")
 
-    result = pipeline.step(ReplicateImageProvider(), **step_kwargs).run(sink=sink, timeout=180)
+    result = pipeline.step(ReplicateProvider(), **step_kwargs).run(sink=sink, timeout=180)
     return result
 
 
