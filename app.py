@@ -63,6 +63,14 @@ B2_BUCKET = os.environ.get("B2_BUCKET")
 if not B2_BUCKET:
     log.warning("B2_BUCKET is not set in .env — storage calls will fail until it is.")
 
+B2_REGION = os.environ.get("B2_REGION")
+if not B2_REGION:
+    log.warning("B2_REGION is not set in .env — check your bucket region in the B2 console.")
+
+B2_REGION = os.environ.get("B2_REGION")
+if not B2_REGION:
+    log.warning("B2_REGION is not set in .env — check your bucket region in the B2 console.")
+
 MAX_ROUNDS_DEFAULT = 3
 MAX_ROUNDS_CAP = 4          # hard ceiling — never trust the client's number as-is
 MIN_ROUNDS = 1
@@ -111,7 +119,7 @@ def check_rate_limit(ip: str):
 
 def get_storage_sink():
     """B2 bucket, organized by session — every round's asset + manifest lands here."""
-    backend = S3StorageBackend.for_backblaze(B2_BUCKET)
+    backend = S3StorageBackend.for_backblaze(B2_BUCKET, region=B2_REGION)
     return ObjectStorageSink(backend, key_strategy=KeyStrategy.HIERARCHICAL)
 
 
@@ -219,7 +227,7 @@ def upload_session_log(session_id: str, log_payload: dict):
     in B2, alongside the per-round image assets Genblaze already uploaded.
     This is what makes the whole negotiation reviewable after the fact.
     """
-    backend = S3StorageBackend.for_backblaze(B2_BUCKET)
+    backend = S3StorageBackend.for_backblaze(B2_BUCKET, region=B2_REGION)
     key = f"sessions/{session_id}/session_log.json"
     body = json.dumps(log_payload, indent=2).encode("utf-8")
     try:
@@ -248,7 +256,7 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
     reference_image_url = None
     if reference_file and reference_file.filename:
         try:
-            backend = S3StorageBackend.for_backblaze(B2_BUCKET)
+            backend = S3StorageBackend.for_backblaze(B2_BUCKET, region=B2_REGION)
             ref_key = f"sessions/{session_id}/reference{os.path.splitext(reference_file.filename)[1]}"
             backend.client.put_object(
                 Bucket=B2_BUCKET, Key=ref_key, Body=reference_file.read(),
@@ -402,7 +410,7 @@ def list_sessions():
     if not B2_BUCKET:
         return jsonify({"error": "B2_BUCKET is not configured"}), 500
 
-    backend = S3StorageBackend.for_backblaze(B2_BUCKET)
+    backend = S3StorageBackend.for_backblaze(B2_BUCKET, region=B2_REGION)
     try:
         listing = backend.client.list_objects_v2(Bucket=B2_BUCKET, Prefix="sessions/")
     except Exception as e:
