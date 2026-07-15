@@ -1,186 +1,268 @@
 # BetterTake AI
 
-Two AI agents argue over an ad image until it's good enough to ship.
+### AI-Powered Multi-Agent Ad Creative Generation & Review
 
-![Home screen — live round-by-round argument](screenshots/home.png)
-![Past campaigns archive, read live from B2](screenshots/history.png)
-
-- **Generator agent** — creates an ad image from your campaign brief using **Replicate's FLUX 1.1 Pro** model, orchestrated through **Genblaze**.
-- **Critic agent** — looks at the actual image (vision model, via **Groq**) and scores it against your brief, calling out one specific thing to fix.
-- The two go back and forth for a few rounds, **live in the browser** — each round streams in as it finishes rather than making you wait on one long request.
-- Every round's image, plus the full back-and-forth, is stored durably in **Backblaze B2** — and is browsable afterward on the **Past campaigns** page, not just claimed in this README.
-
-Built for the Backblaze Generative Media Hackathon.
+Built for the Backblaze Generative Media Hackathon
 
 ---
 
-## Who this is for
+# Demo
 
-Solo brand owners, indie e-commerce sellers, and small marketing teams who need ad
-creative fast but can't brief and wait on a design agency for every variation.
-Instead of getting one AI image and hoping it's usable, they get a short,
-visible negotiation between a generator and a critic — and a durable record of
-every version considered, so nothing is a black box.
+- **Live Application:** https://bettertake-ai.onrender.com
+- **Demo Video:**
+- **History Page:** `/history`
 
 ---
 
-## What you need before you start
+# Project Description
 
-Three free accounts, no money required to get started.
+Creating high-quality advertising creatives usually requires multiple design iterations and human feedback. Traditional AI image generators produce a single image from a prompt, leaving users to manually refine prompts until the result is acceptable.
 
-1. A **Backblaze B2** account (storage) — 10GB free.
-2. A **Replicate** account (image generation) — free trial runs, no credit card needed to start, at [replicate.com](https://replicate.com).
-3. A **Groq** account (the critic's "eyes") — genuinely free tier, no credit card, at [console.groq.com](https://console.groq.com).
-4. **Python 3.11 or newer** for local development (not needed if you only plan to deploy).
+**BetterTake AI** introduces a collaborative multi-agent workflow where two AI agents iteratively improve an advertisement. A **Generator Agent** creates an ad image from a campaign brief using **Replicate FLUX 1.1 Pro** orchestrated through **Genblaze**, while a **Critic Agent** powered by **Groq Vision** evaluates the generated image, scores it, and identifies one concrete improvement.
+
+Rather than generating a single image, BetterTake AI creates an AI-to-AI creative discussion. Every round is streamed live to the browser and permanently stored in **Backblaze B2**, allowing users to revisit every iteration of every campaign — not just the final result.
 
 ---
 
-## Step 1 — Create your Backblaze B2 bucket
+# The Problem
 
-1. Go to [backblaze.com/b2](https://www.backblaze.com/cloud-storage) and sign up for a free account.
-2. Once logged in, go to **Buckets** and click **Create a Bucket**.
-3. Give it any name (must be globally unique, e.g. `bettertake-ai-yourname`).
-4. Set it to **Public** — this lets the generated images load directly in the browser without extra work.
-5. Go to **Application Keys** (left sidebar) and click **Add a New Application Key** — do **not** use your Master Application Key for this. A scoped key limited to just this one bucket is much safer to put in a hosted app's environment variables.
-6. Name it anything, select the bucket you just created, and click **Create New Key**.
-7. Copy the **keyID** and **applicationKey** shown — you'll only see the applicationKey once. Save both somewhere safe.
+Marketing teams, startups, and ecommerce businesses frequently need advertising creatives but often face:
 
-## Step 2 — Create your Replicate account
+- Slow creative iteration
+- Repeated prompt experimentation
+- No structured AI feedback
+- Lost intermediate versions
+- Limited transparency into AI decision-making
 
-1. Go to [replicate.com](https://replicate.com) and sign up (email, GitHub, or Google — no card required).
-2. Click your profile icon (top right) → **API tokens** → **Create token**. Copy it (starts with `r8_...`).
-3. Browse [replicate.com/collections/try-for-free](https://replicate.com/collections/try-for-free) to confirm which models currently have free runs available — this project defaults to `black-forest-labs/flux-1.1-pro`, but check the collection since Replicate rotates what's included.
-4. Free runs are capped per account. Once you exceed them, Replicate will ask you to add billing to continue — at that point, per-run pricing is shown on the model's page.
+---
 
-## Step 3 — Create your Groq account
+# Our Solution
 
-1. Go to [console.groq.com](https://console.groq.com) and sign up with email or Google — no credit card required.
-2. Go to **API Keys** → **Create API Key**. Copy it.
-3. This project uses `meta-llama/llama-4-scout-17b-16e-instruct`, Groq's vision-capable model, for the critic. It's in "preview" on Groq's side — if it gets deprecated, check [console.groq.com/docs/vision](https://console.groq.com/docs/vision) for the current recommended vision model and update `CRITIC_MODEL` in `app.py`.
-4. Groq's free tier is rate-limited (roughly 30 requests/minute, ~14,400/day as of this writing) but no cost — more than enough for hackathon dev and demo use.
+BetterTake AI combines AI image generation, vision-based evaluation, durable cloud storage, and live streaming into one workflow.
 
-## Step 4 — Local setup
+For every campaign:
 
-```bash
-python3 -m venv venv
-source venv/bin/activate        # on Windows: venv\Scripts\activate
-pip install -r requirements.txt
+- Generates an advertisement from a product brief
+- Reviews the generated image using an AI vision critic
+- Identifies one specific improvement
+- Regenerates the advertisement using that feedback
+- Repeats for multiple rounds
+- Stores every image and critique permanently — approved or not
+
+---
+
+# Multi-Agent Architecture
+
+- **Generator Agent**
+  - Replicate FLUX 1.1 Pro
+  - Orchestrated with Genblaze
+  - Produces advertisement creatives
+
+- **Critic Agent**
+  - Groq Vision model
+  - Evaluates the generated image
+  - Assigns a score
+  - Suggests one improvement
+
+---
+
+# Solution Architecture
+
+```text
+Campaign Brief
+      │
+      ▼
+Generator Agent (Replicate + Genblaze)
+      │
+      ▼
+Generated Advertisement ──────────────► Stored in Backblaze B2 (every round)
+      │
+      ▼
+Critic Agent (Groq Vision)
+      │
+ Approved or max rounds reached? ── Yes ─────► Session log finalized in B2
+      │
+      No
+      ▼
+One Specific Improvement
+      │
+      ▼
+Generator Creates New Version
+      │
+      └────────────── Loop
 ```
 
-## Step 5 — Add your API keys
+Every round's image and manifest are stored the moment they're generated — not only the final approved one. The loop just decides when to *stop* generating new rounds.
+
+---
+
+# AI Workflow
+
+1. User submits campaign brief.
+2. Generator creates advertisement.
+3. Image streams live to browser.
+4. Critic analyzes image.
+5. Critic returns score and one improvement.
+6. Round's image + manifest saved to B2.
+7. If not approved and rounds remain, Generator revises image.
+8. Session history becomes available through the History page.
+
+---
+
+# How Genblaze is Used
+
+Genblaze orchestrates the generation pipeline via `Pipeline`/`.step()`, links each generation round to the previous one with `.from_result()`, manages pipeline execution, and stores provenance manifests for generated assets.
+
+---
+
+# How Backblaze B2 is Used
+
+Backblaze B2 provides durable storage for:
+
+- Generated images (every round)
+- Session logs
+- Critique history
+- Provenance manifests
+
+The History page retrieves previous campaigns directly from B2.
+
+---
+
+# AI Models Used
+
+| Component | Technology |
+|-----------|------------|
+| Generator | Replicate FLUX 1.1 Pro |
+| Orchestration | Genblaze |
+| Critic | Groq Vision |
+| Backend | Flask |
+| Storage | Backblaze B2 |
+
+---
+
+# Key Features
+
+- Multi-agent AI workflow
+- Vision-based creative evaluation
+- Live streaming with Server-Sent Events
+- Durable cloud storage
+- Campaign history
+- Responsive UI
+- Reference image support
+- Production-ready deployment
+
+---
+
+# Technology Stack
+
+- Python
+- Flask
+- HTML
+- CSS
+- JavaScript
+- Genblaze
+- Replicate
+- Groq
+- Backblaze B2
+- Docker
+- Gunicorn
+- Render
+
+---
+
+# Project Structure
+
+```text
+bettertake-ai/
+├── app.py
+├── passenger_wsgi.py
+├── templates/
+├── static/
+├── screenshots/
+├── tests/
+├── Dockerfile
+├── Procfile
+├── requirements.txt
+├── .env.example
+├── LICENSE
+└── README.md
+```
+
+---
+
+# Setup Instructions
+
+## Prerequisites
+
+- Python 3.11+
+- Backblaze B2 account (bucket + Application Key + bucket region)
+- Replicate API Token
+- Groq API Key
+
+## Installation
 
 ```bash
+git clone https://github.com/aasimalakho/bettertake-ai.git
+cd bettertake-ai
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Open `.env` and fill in:
-```
-B2_KEY_ID=...
-B2_APP_KEY=...
-B2_BUCKET=your-bucket-name
-REPLICATE_API_TOKEN=r8_...
-GROQ_API_KEY=...
-```
-
-## Step 6 — Run it locally
+Fill in `.env` with your real values, including `B2_REGION` (found on your bucket's page in the B2 console, e.g. `us-east-005`).
 
 ```bash
 python app.py
 ```
 
-Then open **http://localhost:5000**
+Visit:
 
-## Step 7 — Deploy to Hugging Face Spaces (so judges get a real working URL)
-
-The hackathon requires a live app URL judges can open directly — `localhost` isn't
-submittable. This repo's `Dockerfile` is already configured for HF Spaces.
-
-1. Create a free Hugging Face account → **New Space** → choose **Docker** as the SDK → name it (e.g. `bettertake-ai`).
-2. Clone the empty Space repo HF gives you, copy every file from this project into it (including hidden files like `.gitignore`).
-3. Make sure the very top of this README has the HF Spaces config block — if it's missing, add it above everything else:
-   ```yaml
-   ---
-   title: BetterTake AI
-   emoji: 🖊️
-   sdk: docker
-   app_port: 7860
-   pinned: false
-   ---
-   ```
-4. `git add . && git commit -m "Initial commit" && git push`
-5. In your Space, go to **Settings → Repository secrets** and add: `B2_KEY_ID`, `B2_APP_KEY`, `B2_BUCKET`, `REPLICATE_API_TOKEN`, `GROQ_API_KEY`.
-6. The Space rebuilds automatically — watch the **Building** logs. You'll get a live URL like `https://huggingface.co/spaces/yourname/bettertake-ai`.
-
-**Alternative hosts** (same Dockerfile, no changes needed — they inject their own `$PORT`):
-- **Render** — "New Web Service" → connect this repo → it detects the `Dockerfile` → add the env vars → deploy.
-- **Railway** — "New Project" → deploy from repo → it picks up the `Procfile` → add the env vars → deploy.
-- **Fly.io** — `fly launch` in this folder, then `fly secrets set B2_KEY_ID=... B2_APP_KEY=... B2_BUCKET=... REPLICATE_API_TOKEN=... GROQ_API_KEY=...`
-
-Test one full campaign on the live URL before recording your demo or submitting. Since Replicate's free runs are limited per account, save a couple for your live demo recording rather than using them all up in development.
-
-## Step 8 — Use it
-
-1. Type in a product/campaign description and a brand direction (tone, mood, colors).
-2. Optionally attach a reference image (a product photo, a style reference — totally optional).
-3. Choose how many rounds you want the two agents to argue for (2–4).
-4. Click **Submit for Review** — each round appears live as it finishes, stamped **Revise** or **Approved**, with a download link and a link to that round's B2 provenance manifest.
-5. Visit **Past campaigns** any time to browse every previous session, pulled live from B2.
-
-Every round's image and a full session log (the whole argument, as JSON) get uploaded to your B2 bucket automatically, organized under `sessions/{session_id}/`.
+```
+http://localhost:5000
+```
 
 ---
 
-## How this satisfies the hackathon requirements
+# Deployment
 
-**Providers and models used:**
-- Replicate — `black-forest-labs/flux-1.1-pro` (image generation, the Generator agent)
-- Groq — `meta-llama/llama-4-scout-17b-16e-instruct` (vision-based scoring, the Critic agent)
+The application is deployed on **Render** (free tier, Docker-based).
 
-**How B2 is used:** every round's generated image is stored via Genblaze's `ObjectStorageSink`, which also writes a SHA-256 provenance manifest alongside each asset (organized under `runs/` by session). This app also writes a consolidated `session_log.json` per campaign under `sessions/{session_id}/`, capturing every round's prompt, image, and critique. The `/history` page reads that same data back out of B2 with `list_objects_v2` / `get_object`, so the "durable, reviewable" storage claim is something a judge can click through live, not just read about.
+Also compatible with:
+- Railway
+- Fly.io
+- Any host supporting Docker or Python/Passenger (see `passenger_wsgi.py`)
 
-**How Genblaze is used:** the Generator agent runs through Genblaze's `Pipeline` / `Step` API, chained across rounds with `.from_result()` so each regeneration is linked to its predecessor (full lineage, not disconnected calls). This is exactly the generate → evaluate → retry pattern the hackathon calls out as a strong pattern for agentic media pipelines. Genblaze's provider abstraction is also what made it possible to move the image provider (GMI Cloud → NVIDIA NIM → Google → Replicate, across this project's development) with a one-function change in `run_generator_step()` each time, instead of a rewrite. The Critic agent is intentionally a direct API call rather than a Genblaze step — it's judging media, not generating it, so it sits outside Genblaze's generation/storage pipeline on purpose.
+*Note: Hugging Face Spaces now requires a paid PRO subscription for Docker-based Spaces — only Static Spaces (which can't run this app) remain free.*
 
-**Production readiness:**
-- Rounds stream live over Server-Sent Events instead of one blocking request, so the browser never sits on a multi-minute unresponsive call.
-- `max_rounds` and brief text length are validated and clamped server-side — a malicious or mistaken client can't force runaway generation cost.
-- A simple per-IP cooldown limits how fast one visitor can trigger new (paid) generation runs.
-- Runs behind `gunicorn` in Docker/Procfile, not the Flask dev server, with `debug` off by default.
-- A small `pytest` suite covers prompt-building and input-clamping logic (`tests/test_app.py`).
-- Fully responsive UI (mobile, tablet, desktop) with a proper editorial design system, not default browser form styling.
+Configure environment variables for Backblaze B2 (including `B2_REGION`), Replicate, and Groq before deployment.
 
 ---
 
-## Troubleshooting
+# Production Features
 
-- **"B2_BUCKET is not set" warning on startup** — you forgot to fill in `.env`. Double check Step 5.
-- **Images don't load in the browser** — make sure your B2 bucket is set to **Public** (Step 1.4).
-- **"Insufficient credit" or a billing prompt from Replicate** — you've used up the free runs on your account; either add billing (per-run pricing is on the model's page) or switch `model=` in `run_generator_step()` to another model still in the free collection.
-- **Groq rate-limit errors (HTTP 429)** — you've hit the free-tier request cap; the error includes a `retry-after` value. Space out testing, or wait for the daily reset.
-- **Critic model deprecated / not found** — `llama-4-scout` is a preview model on Groq. Check console.groq.com/docs/vision for the current vision model and update `CRITIC_MODEL` in `app.py`.
-- **Reference image upload seems ignored** — some image models don't support reference-image guidance the same way; the app automatically falls back to text-only generation if the provider rejects the reference image, so the demo never breaks — check your terminal log for a warning.
-- **Critic responses look garbled** — this can happen occasionally with any LLM; the app has a fallback that scores it 5/10 and asks for a retry rather than crashing.
-- **"Please wait Ns before starting another campaign"** — the per-IP cooldown (Step 8), there to stop accidental cost spam; just wait the stated number of seconds.
-- **HF Space stuck "Building"** — check the build logs tab; the most common cause is a missing/misplaced YAML config block at the very top of the README (see Step 7.3).
+- Server-Sent Events
+- Server-side validation
+- Per-IP cooldown
+- Dockerized deployment
+- Gunicorn production server
+- Responsive design
+- Automated testing
 
-## Project structure
+---
 
-```
-bettertake-ai/
-├── app.py                  # Flask backend: generator/critic loop, SSE streaming, B2 storage, history API
-├── requirements.txt        # Python dependencies
-├── Dockerfile              # Defaults to port 7860 for Hugging Face Spaces
-├── Procfile                # For Railway / Heroku style deploys
-├── .dockerignore
-├── .gitignore
-├── .env.example             # Copy to .env and fill in your keys
-├── screenshots/             # Used in this README
-├── tests/
-│   └── test_app.py         # Unit tests for prompt building + input validation
-├── templates/
-│   ├── index.html          # Main campaign form + live round view
-│   └── history.html        # Gallery of past campaigns, read from B2
-└── static/
-    ├── style.css            # "The Red Pen" — responsive editorial design system
-    ├── app.js               # Streams rounds live via Server-Sent Events
-    └── history.js           # Loads /api/sessions for the gallery
-```
+# Why BetterTake AI?
+
+- Makes AI image generation iterative instead of one-shot
+- Introduces collaborative AI agents
+- Provides transparent creative feedback
+- Preserves every generated revision
+- Enables reproducible creative workflows
+- Demonstrates production-ready AI orchestration
+
+---
+
+# License
+
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE).
+
