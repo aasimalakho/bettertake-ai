@@ -233,8 +233,6 @@ Also compatible with:
 - Fly.io
 - Any host supporting Docker or Python/Passenger (see `passenger_wsgi.py`)
 
-*Note: Hugging Face Spaces now requires a paid PRO subscription for Docker-based Spaces — only Static Spaces (which can't run this app) remain free.*
-
 Configure environment variables for Backblaze B2 (including `B2_REGION`), Replicate, and Groq before deployment.
 
 ---
