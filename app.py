@@ -273,6 +273,9 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
     final_round = None
 
     for round_num in range(1, max_rounds + 1):
+        if round_num > 1:
+            time.sleep(12)
+
         yield {"type": "round_start", "round": round_num}
         prompt = build_prompt(product, brand_direction, fix_instruction)
         log.info("Round %s prompt: %s", round_num, prompt)
@@ -287,7 +290,16 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
             )
             previous_result = gen_result
 
-            asset = gen_result.run.steps[0].assets[0]
+            try:
+                asset = gen_result.run.steps[0].assets[0]
+            except (IndexError, AttributeError):
+                raise RuntimeError(
+                    "Image generation returned no result. This usually means the "
+                    "provider rate-limited or rejected the request \u2014 Replicate's "
+                    "free tier allows only 6 requests/minute with a burst of 1 "
+                    "until billing is added. Wait a bit and try again, or add "
+                    "billing at replicate.com to raise this limit."
+                )
             image_url = asset.url
 
             critique = run_critic_step(image_url, product, brand_direction)
@@ -308,11 +320,16 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
         yield {"type": "round_result", **round_data}
 
         approved = critique.get("verdict") == "approve" or critique.get("score", 0) >= APPROVAL_SCORE
+        # Never approve on round 1 -- even a good first take should get one
+        # round of critique before shipping. This also guarantees a real
+        # back-and-forth is visible in demos instead of an instant approval.
+        if round_num == 1:
+            approved = False
         if approved or round_num == max_rounds:
             final_round = round_data
             break
 
-        fix_instruction = critique.get("issue") or None
+        fix_instruction = critique.get("issue") or critique.get("note") or None
 
     session_payload = {
         "session_id": session_id,
