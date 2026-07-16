@@ -231,8 +231,7 @@ def upload_session_log(session_id: str, log_payload: dict):
     key = f"sessions/{session_id}/session_log.json"
     body = json.dumps(log_payload, indent=2).encode("utf-8")
     try:
-        backend.client.put_object(Bucket=B2_BUCKET, Key=key, Body=body,
-                                   ContentType="application/json")
+        backend.put(key, body, content_type="application/json")
         log.info("Session log stored at %s", key)
     except Exception as e:  # pragma: no cover - defensive, keeps demo alive
         log.error("Could not upload session log: %s", e)
@@ -258,13 +257,11 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
         try:
             backend = S3StorageBackend.for_backblaze(B2_BUCKET, region=B2_REGION)
             ref_key = f"sessions/{session_id}/reference{os.path.splitext(reference_file.filename)[1]}"
-            backend.client.put_object(
-                Bucket=B2_BUCKET, Key=ref_key, Body=reference_file.read(),
-                ContentType=reference_file.mimetype or "image/png",
+            backend.put(
+                ref_key, reference_file.read(),
+                content_type=reference_file.mimetype or "image/png",
             )
-            reference_image_url = backend.client.generate_presigned_url(
-                "get_object", Params={"Bucket": B2_BUCKET, "Key": ref_key}, ExpiresIn=3600
-            )
+            reference_image_url = backend.presigned_get_url(ref_key, expires_in=3600)
             log.info("Reference image stored at %s", ref_key)
         except Exception as e:
             log.warning("Reference image upload failed, continuing without it: %s", e)
@@ -412,21 +409,21 @@ def list_sessions():
 
     backend = S3StorageBackend.for_backblaze(B2_BUCKET, region=B2_REGION)
     try:
-        listing = backend.client.list_objects_v2(Bucket=B2_BUCKET, Prefix="sessions/")
+        page = backend.list(prefix="sessions/")
     except Exception as e:
         log.error("Could not list sessions from B2: %s", e)
         return jsonify({"error": "Could not reach B2"}), 502
 
     session_logs = [
-        obj["Key"] for obj in listing.get("Contents", [])
-        if obj["Key"].endswith("session_log.json")
+        entry.key for entry in page.entries
+        if entry.key.endswith("session_log.json")
     ]
     session_logs.sort(reverse=True)  # session ids are roughly time-ordered hex
 
     summaries = []
     for key in session_logs[:30]:
         try:
-            body = backend.client.get_object(Bucket=B2_BUCKET, Key=key)["Body"].read()
+            body = backend.get(key)
             payload = json.loads(body)
             final = next((r for r in payload.get("rounds", []) if r["round"] == payload.get("final_round")), None)
             summaries.append({
