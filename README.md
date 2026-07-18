@@ -16,11 +16,6 @@ Built for the Backblaze Generative Media Hackathon
 
 
 
-![Responsive on mobile](screenshots/mobile-home.png)
-
-
-
-
 ---
 
 # Demo
