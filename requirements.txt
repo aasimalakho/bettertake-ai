@@ -1,7 +1,6 @@
 flask==3.0.3
 python-dotenv==1.0.1
-genblaze[replicate]
+genblaze[replicate]>=0.4,<0.5
 openai>=1.30.0
 gunicorn==22.0.0
 pytest==8.2.2
-
