@@ -4,6 +4,23 @@
 
 Built for the Backblaze Generative Media Hackathon
 
+
+
+![Home screen — live round-by-round argument](screenshots/home.png)
+
+
+
+
+![Past campaigns archive, read live from B2](screenshots/history.png)
+
+
+
+
+![Responsive on mobile](screenshots/mobile-home.png)
+
+
+
+
 ---
 
 # Demo
