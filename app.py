@@ -67,10 +67,6 @@ B2_REGION = os.environ.get("B2_REGION")
 if not B2_REGION:
     log.warning("B2_REGION is not set in .env — check your bucket region in the B2 console.")
 
-B2_REGION = os.environ.get("B2_REGION")
-if not B2_REGION:
-    log.warning("B2_REGION is not set in .env — check your bucket region in the B2 console.")
-
 MAX_ROUNDS_DEFAULT = 3
 MAX_ROUNDS_CAP = 4          # hard ceiling — never trust the client's number as-is
 MIN_ROUNDS = 1
