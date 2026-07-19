@@ -101,6 +101,12 @@ function handleEvent(event) {
   }
 }
 
+function verifyBadge(verified) {
+  if (verified === true) return `<span class="verify-badge ok" title="genblaze verified this manifest's SHA-256 provenance chain">✓ Verified</span>`;
+  if (verified === false) return `<span class="verify-badge fail" title="genblaze could not verify this manifest">⚠ Verification failed</span>`;
+  return "";
+}
+
 function renderRound(round) {
   const score = round.critique?.score ?? null;
   const verdict = round.critique?.verdict ?? "revise";
@@ -123,6 +129,7 @@ function renderRound(round) {
       <div class="round-links">
         <a href="${round.image_url}" download target="_blank" rel="noopener">download</a>
         <a href="${round.manifest_uri}" target="_blank" rel="noopener" title="SHA-256 provenance manifest stored in B2">view manifest</a>
+        ${verifyBadge(round.verified)}
       </div>
       <div class="sha">SHA-256 ${round.sha256 ? round.sha256.slice(0, 20) + "…" : "n/a"}</div>
     </div>
