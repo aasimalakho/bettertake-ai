@@ -123,7 +123,7 @@ Every round's image and manifest are stored the moment they're generated — not
 
 # How Genblaze is Used
 
-Genblaze orchestrates the generation pipeline via `Pipeline`/`.step()`, links each generation round to the previous one with `.from_result()`, manages pipeline execution, and stores provenance manifests for generated assets.
+Genblaze orchestrates the generation pipeline via `Pipeline`/`.step()`, links each generation round to the previous one with `.from_result()`, manages pipeline execution, and stores provenance manifests for generated assets. Each round also attempts genblaze's own `manifest.verify()` on its provenance manifest before it's shown to the user — the "view manifest" link isn't just opening a raw JSON file and hoping it's trustworthy, it's showing a manifest genblaze itself has been asked to confirm the integrity of, with the result surfaced as a ✓/⚠ badge next to the link when verification succeeds or explicitly fails.
 
 ---
 
