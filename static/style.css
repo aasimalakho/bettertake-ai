@@ -472,6 +472,18 @@ section#results h2 {
   border-color: var(--ink);
 }
 
+.verify-badge {
+  font-weight: 600;
+}
+
+.verify-badge.ok {
+  color: var(--green);
+}
+
+.verify-badge.fail {
+  color: var(--red);
+}
+
 .sha {
   font-family: var(--font-mono);
   font-size: 10.5px;
