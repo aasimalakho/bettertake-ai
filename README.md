@@ -22,7 +22,7 @@ Built for the Backblaze Generative Media Hackathon
 
 - **Live Application:** https://bettertake-ai.onrender.com
 - **Demo Video:**
-- **History Page:** `/history`
+- **History Page:** https://bettertake-ai.onrender.com/history
 
 ---
 
