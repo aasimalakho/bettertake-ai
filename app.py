@@ -304,14 +304,35 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
             yield {"type": "error", "round": round_num, "message": str(e)}
             return
 
+        # Best-effort provenance check: genblaze's manifests are documented
+        # as "SHA-256-verified," with verify() as the stated enforcement
+        # boundary for a manifest's integrity. This call is wrapped
+        # defensively -- if the exact method name differs in the installed
+        # version, we log it and move on rather than breaking the round,
+        # since this is a nice-to-have integrity signal, not a required step.
+        verified = None
+        try:
+            gen_result.manifest.verify()
+            verified = True
+        except AttributeError:
+            log.warning(
+                "genblaze manifest object has no verify() in this version "
+                "-- skipping the verification badge for round %s.", round_num
+            )
+        except Exception as e:
+            log.warning("Manifest verification failed for round %s: %s", round_num, e)
+            verified = False
+
         round_data = {
             "round": round_num,
             "prompt": prompt,
             "image_url": image_url,
             "sha256": asset.sha256,
             "manifest_uri": gen_result.manifest.manifest_uri,
+            "verified": verified,
             "critique": critique,
         }
+      
         rounds.append(round_data)
         yield {"type": "round_result", **round_data}
 
