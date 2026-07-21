@@ -74,10 +74,11 @@ APPROVAL_SCORE = 8          # critic score (1-10) at which we stop iterating
 MAX_BRIEF_CHARS = 600       # keeps prompts (and cost) bounded
 REQUEST_COOLDOWN_SECONDS = 8  # naive per-IP throttle, see check_rate_limit()
 
-# CRITIC_MODEL is in "preview" on Groq as of this writing — check
-# console.groq.com/docs/vision for the current recommended vision model if
-# this one gets deprecated.
-CRITIC_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+# CRITIC_MODEL is in "preview" on Groq as of this writing -- it already
+# changed once (llama-4-scout was deprecated in favor of this model).
+# Check console.groq.com/docs/vision if it happens again.
+
+CRITIC_MODEL = "qwen/qwen3.6-27b"
 
 critic_client = OpenAI(
     api_key=os.environ.get("GROQ_API_KEY"),
