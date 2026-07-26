@@ -134,7 +134,7 @@ def build_prompt(product: str, brand_direction: str, fix_instruction) -> str:
 def run_generator_step(pipeline_name, prompt, sink, previous_result=None,
                         reference_image_url=None):
     """
-    One 'take' from the Generator agent. Uses Replicate's FLUX 1.1 Pro model
+    One 'take' from the Generator agent. Uses Replicate's FLUX Schnell model
     through Genblaze so every asset gets a SHA-256 provenance manifest and lands
     in B2 automatically.
 
@@ -151,7 +151,7 @@ def run_generator_step(pipeline_name, prompt, sink, previous_result=None,
     step_kwargs = dict(
         # From Replicate's "Try for Free" collection (replicate.com/collections/try-for-free).
         # Good consistency/quality balance for product ad photography. Free runs
-        # are capped per account — check replicate.com/black-forest-labs/flux-1.1-pro
+        # are capped per account — check replicate.com/black-forest-labs/flux-schnell
         # for current run pricing if you exceed the free allotment.
         model="black-forest-labs/flux-schnell",
         prompt=prompt,
