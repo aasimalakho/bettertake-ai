@@ -30,7 +30,7 @@ Built for the Backblaze Generative Media Hackathon
 
 Creating high-quality advertising creatives usually requires multiple design iterations and human feedback. Traditional AI image generators produce a single image from a prompt, leaving users to manually refine prompts until the result is acceptable.
 
-**BetterTake AI** introduces a collaborative multi-agent workflow where two AI agents iteratively improve an advertisement. A **Generator Agent** creates an ad image from a campaign brief using **Replicate FLUX 1.1 Pro** orchestrated through **Genblaze**, while a **Critic Agent** powered by **Groq Vision** evaluates the generated image, scores it, and identifies one concrete improvement.
+**BetterTake AI** introduces a collaborative multi-agent workflow where two AI agents iteratively improve an advertisement. A **Generator Agent** creates an ad image from a campaign brief using **Replicate FLUX Schnell** orchestrated through **Genblaze**, while a **Critic Agent** powered by **Groq Vision** evaluates the generated image, scores it, and identifies one concrete improvement.
 
 Rather than generating a single image, BetterTake AI creates an AI-to-AI creative discussion. Every round is streamed live to the browser and permanently stored in **Backblaze B2**, allowing users to revisit every iteration of every campaign — not just the final result.
 
@@ -66,7 +66,7 @@ For every campaign:
 # Multi-Agent Architecture
 
 - **Generator Agent**
-  - Replicate FLUX 1.1 Pro
+  - Replicate FLUX Schnell
   - Orchestrated with Genblaze
   - Produces advertisement creatives
 
@@ -144,7 +144,7 @@ The History page retrieves previous campaigns directly from B2.
 
 | Component | Technology |
 |-----------|------------|
-| Generator | Replicate FLUX 1.1 Pro |
+| Generator | Replicate FLUX Schnell |
 | Orchestration | Genblaze |
 | Critic | Groq Vision |
 | Backend | Flask |
