@@ -211,6 +211,13 @@ def run_critic_step(image_url: str, product: str, brand_direction: str) -> dict:
     )
 
     raw = response.choices[0].message.content.strip()
+    # Some models wrap JSON in markdown code fences despite being told not
+    # to -- strip a leading/trailing ```json or ``` before parsing.
+    if raw.startswith("```"):
+        raw = raw.strip("`")
+        if raw.lower().startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
@@ -271,7 +278,7 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
 
     for round_num in range(1, max_rounds + 1):
         if round_num > 1:
-            time.sleep(12)
+            time.sleep(20)
 
         yield {"type": "round_start", "round": round_num}
         prompt = build_prompt(product, brand_direction, fix_instruction)
