@@ -278,7 +278,7 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
 
     for round_num in range(1, max_rounds + 1):
         if round_num > 1:
-            time.sleep(15)
+            time.sleep(20)
 
         yield {"type": "round_start", "round": round_num}
         prompt = build_prompt(product, brand_direction, fix_instruction)
