@@ -153,7 +153,7 @@ def run_generator_step(pipeline_name, prompt, sink, previous_result=None,
         # Good consistency/quality balance for product ad photography. Free runs
         # are capped per account — check replicate.com/black-forest-labs/flux-1.1-pro
         # for current run pricing if you exceed the free allotment.
-        model="black-forest-labs/flux-1.1-pro",
+        model="black-forest-labs/flux-schnell",
         prompt=prompt,
         modality=Modality.IMAGE,
     )
