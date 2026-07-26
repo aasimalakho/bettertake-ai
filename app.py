@@ -208,7 +208,14 @@ def run_critic_step(image_url: str, product: str, brand_direction: str) -> dict:
             },
         ],
         max_tokens=300,
-    )
+        # Qwen 3.6 is a reasoning model -- thinking mode is on by default and
+        # wraps output in <think>...</think> before the real answer, which
+        # broke JSON parsing on every round. "none" disables it entirely.
+        reasoning_effort="none",
+        # Groq confirms this model supports JSON mode -- forces valid JSON
+        # instead of hoping the model follows the system prompt's instruction.
+        response_format={"type": "json_object"},
+     )
 
     raw = response.choices[0].message.content.strip()
     # Some models wrap JSON in markdown code fences despite being told not
