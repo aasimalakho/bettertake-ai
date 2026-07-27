@@ -282,6 +282,8 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
     previous_result = None
     fix_instruction = None
     final_round = None
+    best_round = None
+    last_image_url = None  # the previous round's actual image, fed forward as a visual reference
 
     for round_num in range(1, max_rounds + 1):
         if round_num > 1:
@@ -297,7 +299,11 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
                 prompt=prompt,
                 sink=sink,
                 previous_result=previous_result,
-                reference_image_url=reference_image_url if round_num == 1 else None,
+                # Round 1 uses the user's uploaded reference, if any. Every
+                # round after that uses the *previous round's own image* as
+                # the reference -- so the model is actually editing toward
+                # the fix, not blindly regenerating from text alone.
+                reference_image_url=reference_image_url if round_num == 1 else last_image_url,
             )
             previous_result = gen_result
 
@@ -312,6 +318,7 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
                     "billing at replicate.com to raise this limit."
                 )
             image_url = asset.url
+            last_image_url = image_url
 
             critique = run_critic_step(image_url, product, brand_direction)
         except Exception as e:
