@@ -358,14 +358,18 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
         rounds.append(round_data)
         yield {"type": "round_result", **round_data}
 
+        # Track the best-scoring round so far. If later rounds regress
+        # (a real risk once the model starts "fixing" one thing and
+        # introducing another), the app still ships the actual best take
+        # instead of just whatever ran last.
+        if best_round is None or critique.get("score", 0) > best_round["critique"].get("score", 0):
+            best_round = round_data
+
         approved = critique.get("verdict") == "approve" or critique.get("score", 0) >= APPROVAL_SCORE
-        # Never approve on round 1 -- even a good first take should get one
-        # round of critique before shipping. This also guarantees a real
-        # back-and-forth is visible in demos instead of an instant approval.
         if round_num == 1:
             approved = False
         if approved or round_num == max_rounds:
-            final_round = round_data
+            final_round = best_round
             break
 
         fix_instruction = critique.get("issue") or critique.get("note") or None
