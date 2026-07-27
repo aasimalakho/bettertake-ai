@@ -76,6 +76,10 @@ For every campaign:
   - Assigns a score
   - Suggests one improvement
 
+- **Quality guarantee**
+  - Each revision is generated *from the previous round's actual image*, not a blind retry — genuine image-guided editing toward the fix
+  - If no round is ever explicitly approved, the highest-scoring round ships — never just whichever ran last
+
 ---
 
 # Solution Architecture
@@ -92,7 +96,7 @@ Generated Advertisement ──────────────► Stored in 
       ▼
 Critic Agent (Groq Vision)
       │
- Approved or max rounds reached? ── Yes ─────► Session log finalized in B2
+ Approved or max rounds reached? ── Yes ─────► Best-scoring round selected, session log finalized in B2
       │
       No
       ▼
