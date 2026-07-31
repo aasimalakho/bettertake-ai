@@ -78,6 +78,7 @@ For every campaign:
 
 - **Quality guarantee**
   - Each revision is generated *from the previous round's actual image*, not a blind retry — genuine image-guided editing toward the fix
+  - Generation stops the moment a round scores 8/10 or higher — no wasted rounds once the ad is genuinely good
   - If no round is ever explicitly approved, the highest-scoring round ships — never just whichever ran last
 
 ---
