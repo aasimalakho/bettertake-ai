@@ -191,8 +191,10 @@ def run_critic_step(image_url: str, product: str, brand_direction: str) -> dict:
         f"Brand direction: {brand_direction}\n\n"
         "Score this ad image from 1-10 against the brief above. Be specific: "
         "point to ONE concrete flaw (e.g. warped hands, wrong mood, cluttered "
-        "background, off-brand color) rather than vague criticism. If it's genuinely "
-        "good, approve it."
+        "background, off-brand color) rather than vague criticism. "
+        "If the score is 8 or higher, set verdict to 'approve', leave 'issue' "
+        "empty, and make 'note' a genuinely appreciative sentence about what "
+        "specifically works well -- don't invent a nitpick just to sound critical."
     )
 
     response = critic_client.chat.completions.create(
@@ -366,8 +368,6 @@ def run_campaign(product, brand_direction, max_rounds, reference_file=None):
             best_round = round_data
 
         approved = critique.get("verdict") == "approve" or critique.get("score", 0) >= APPROVAL_SCORE
-        if round_num == 1:
-            approved = False
         if approved or round_num == max_rounds:
             final_round = best_round
             break
