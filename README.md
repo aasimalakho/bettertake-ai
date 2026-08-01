@@ -21,7 +21,7 @@ Built for the Backblaze Generative Media Hackathon
 # Demo
 
 - **Live Application:** https://bettertake-ai.onrender.com
-- **Demo Video:**
+- **Demo Video:** https://youtu.be/mXCLD9ehr4E?si=9q_pVUtj0gG26kcG
 - **History Page:** https://bettertake-ai.onrender.com/history
 
 ---
